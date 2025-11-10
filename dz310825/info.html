@@ -1,0 +1,140 @@
+Для добавления данных применяется метод create():
+
+tom = Person.objects.create(name="Tom", age=23
+
+save
+Однако в своей сути метод create() использует другой метод - save(), который мы также можем использовать отдельно для добавления объекта:
+
+
+tom = Person(name="Tom", age=23)
+tom.save()
+
+bulk_create()
+Метод bulk_create() (и его асинхронная версия abulk_create()) позволяет добавить набор объектов, который передается в в метод в качестве параметра:
+
+
+Получение одного объекта
+Метод get() возвращает один объект по определенному условию, которое передается в качестве параметра:
+
+
+get_or_create
+Метод get_or_create() (и его асинхронная версия aget_or_create) возвращает объект, а если его нет в бд, то добавляет в бд новый объект.
+
+
+bob, created = Person.objects.get_or_create(name="Bob", age=24)
+print(created)
+print(bob.name)
+print(bob.age)
+
+all()
+Если необходимо получить все имеющиеся объекты, то применяется метод all():
+
+1
+people = Person.objects.all()
+
+filter()
+Если надо получить все объекты, которые соответствуют определенному критерию, то применяется метод filter(), который в качестве параметра принимает критерий выборки:
+
+
+people = Person.objects.filter(age=23)
+# использование нескольких критериев
+people2 = Person.objects.filter(name="Tom", age=23)
+
+xclude()
+Метод exclude() позволяют исключить из выборки записи, которые соответвуют переданному в качестве параметра критерию:
+
+
+
+# исключаем пользователей, у которых age=23
+people = Person.objects.exclude(age=23)
+
+n_bulk()
+Метод in_bulk() (и его асинхронная версия ain_bulk) является более эффективным способом для чтения большого количества записей. В качестве параметра в него можно передать список идентификаторов объектов, которые надо получить. В качестве результата он возвращает словарь, то есть объект dict:
+
+
+
+
+
+
+
+Редактирование и удаление объектов модели
+
+save()
+Для обновления объекта также применяется метод save():
+
+
+bob = Person.objects.get(id=2)
+bob.name = "Bob"
+bob.save()
+
+update()
+Другой способ обновления объектов представляет метод update() (и его асинхронная версия aupdate()) в сочетании с методом filter, которые вместе выполняют один запрос к базе данных:
+
+from .models import Person
+ 
+number = Person.objects.filter(id=1).update(name="Mike")
+print(number) # количество обновленных строк
+
+
+update_or_create()
+Метод update_or_create (и его асинхронная версия aupdate_or_create()) обновляет запись, а если ее нет, то добавляет ее в таблицу:
+
+values_for_update={"name":"Bob", "age": 31}
+bob, created = Person.objects.update_or_create(id=2, defaults = values_for_update)
+
+bulk_update()
+Метод bulk_update() (и его асинхронная версия abulk_update()) позволяет обновить за один раз набор объектов.
+
+1
+bulk_update(objs, fields, batch_size=None)
+Первый параметр - obj указывает на обновляемые объекты, а второй параметр - fields представляет обновляемые поля с новыми значениями. Последний параметр - batch_size указывает, сколько объектов обновляется в одном запросе (по умолчанию обновляются все объекты)
+
+from .models import Person
+  
+first_person = Person.objects.get(id=1)
+first_person.name = "Tomas"
+ 
+second_person = Person.objects.get(id=2)
+second_person.age = 29
+ 
+number = Person.objects.bulk_update([first_person, second_person], ["name", "age"])
+print(number)
+
+Удаление
+Для удаления мы можем вызвать метод delete() (либо его асинхронную версию adelete()) у удаляемого объекта:
+
+person = Person.objects.get(id=2)
+person.delete()
+
+
+
+
+
+values и values_list и сортировка
+
+Методы values() и values_list() предназначены для оптимизации: для извлечения поднабора данных без необходимости создания полного объекта модели.
+
+values возвращает объект QuerySet, где каждый объект модели представлен в виде словаря:
+
+from .models import Person 
+ 
+people = Person.objects.values()
+print(people)
+ 
+# Результат
+# <QuerySet [{'id': 1, 'name': 'Bob', 'age': 42}, {'id': 2, 'name': 'Tom', 'age': 38}, {'id
+
+Метод values_list во многом аналогичен values(): он возвращает объект QuerySet, который состоит из кортежей. Каждый кортеж хранит данные одного объекта модели. Например:
+
+from .models import Person 
+ 
+people = Person.objects.values_list()
+print(people)
+ 
+# Результат
+# <QuerySet [(1, 'Bob', 42), (2, 'Tom', 38), (3, 'Sam', 28), (4, 'Alice', 32), (5, 'Tom', 2
+
+
+
+
+
